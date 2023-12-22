@@ -3,8 +3,8 @@ const { SlashCommandBuilder, Routes } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 
 const commands = [
-  new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
-  new SlashCommandBuilder().setName('button').setDescription('lacher un AAAAAAA'),
+  new SlashCommandBuilder().setName('ping').setDescription('Il va te répondre avec pong'),
+  new SlashCommandBuilder().setName('button').setDescription('Faire apparaitre un bouton'),
   new SlashCommandBuilder().setName('strawpoll').setDescription('créer un strawpoll')
   .addStringOption(option => option
     .setName('title')
@@ -38,6 +38,18 @@ const commands = [
     .setName('option5')
     .setDescription('Option 5')
     .setMaxLength(10)
+  ),
+
+  new SlashCommandBuilder().setName('roll').setDescription('ROLL MY DICE')
+  .addIntegerOption(option => option
+    .setName('nbdé')
+    .setDescription('Nombre de dé')
+    .setRequired(true)
+  )
+  .addIntegerOption(option => option
+    .setName('nbmax')
+    .setDescription('chiffre maximum du dé')
+    .setRequired(true)
   ),
 ].map(command => command.toJSON());
 

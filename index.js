@@ -33,6 +33,7 @@ client.on('interactionCreate', async interaction => {
     await interaction.deferReply({ ephemeral: true });
     const { channel } = await interaction;
     const options = await interaction.options.data;
+    console.log(options);
     const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"];
 
     let embed = new EmbedBuilder()
@@ -58,6 +59,28 @@ client.on('interactionCreate', async interaction => {
       }
 
       await interaction.editReply('Poll créé');
+  }
+
+  if (commandName === 'roll'){
+    const options = await interaction.options.data;
+    const nbDice = options[0].value;
+    const nbMax = options[1].value;
+
+    let sentence = "";
+
+    for (let i = 0; i < nbDice; i++) {
+      const rdmNum = Math.floor(Math.random() * (nbMax - 1 + 1)) + 1;
+      sentence = sentence + rdmNum + " ";
+    }
+    // Créer un embed
+    const embed = {
+      title: 'Résultat du lancer de dés',
+      description: `Voici les résultats : ${sentence}`,
+      color: 0xff0000,
+    };
+    
+    // Envoyer l'embed dans le channel
+    await interaction.reply({ embeds: [embed] });
   }
 });
 
