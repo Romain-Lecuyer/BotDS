@@ -1,8 +1,9 @@
 require('dotenv').config();
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GatewayIntentBits,  } = require('discord.js');
-const client = new Client({ intents: GatewayIntentBits.Guilds });
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GatewayIntentBits  } = require('discord.js');
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+const { getVoiceConnection, joinVoiceChannel } = require('@discordjs/voice');
 
-client.on('ready', () => {
+client.on('clientReady', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 });
 
@@ -11,57 +12,30 @@ client.on('interactionCreate', async interaction => {
 
   const { commandName } = interaction;
 
+  //* 1er test ping
   if (commandName === 'ping') {
     await interaction.reply('Pong!');
     await interaction.followUp({ content: '23 à 0!', ephemeral: true });
   }
 
+  //* 1er test bouton
   if (commandName === 'button') {
     const row = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
           .setCustomId('primary')
-          .setLabel('Click me!')            //texte du button
+          .setLabel('Click me!')            // * texte du button
             .setStyle(ButtonStyle.Primary)
-          .setEmoji("🥅")                   //mettre un emoji
-          //.setDisabled(true)              //empecher l'utilisation sans le faire disparaitre
+          .setEmoji("🥅")                   // * mettre un emoji
+          //.setDisabled(true)              // * empecher l'utilisation sans le faire disparaitre
       );
     await interaction.reply({ content: 'I think you should,', components: [row] });
   }
 
-  if (commandName === 'strawpoll'){
-    await interaction.deferReply({ ephemeral: true });
-    const { channel } = await interaction;
-    const options = await interaction.options.data;
-    console.log(options);
-    const emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"];
-
-    let embed = new EmbedBuilder()
-      .setTitle(`${options[0].value}`)
-      .setColor('Green')
-
-      for(let i = 1; i < options.length; i++){
-        let emoji = emojis[i-1];
-        let option = options[i];
-        embed.addFields(
-          {
-            name: `${emoji} ${option.value}`,
-            value: ' '
-          }
-        )
-      }
-
-      const message = await channel.send({embeds: [embed]});
-
-      for(let i = 1; i < options.length; i++){
-        let emoji = emojis[i-1]; 
-        await message.react(emoji);
-      }
-
-      await interaction.editReply('Poll créé');
-  }
-
+  //* 1er test roll
   if (commandName === 'roll'){
+
+    //! On ne peut sélectionner que 1 seul type de dé à changer 
     const options = await interaction.options.data;
     const nbDice = options[0].value;
     const nbMax = options[1].value;
@@ -79,8 +53,29 @@ client.on('interactionCreate', async interaction => {
       color: 0xff0000,
     };
     
-    // Envoyer l'embed dans le channel
+    // * Envoyer l'embed dans le channel
     await interaction.reply({ embeds: [embed] });
+  }
+
+  //* faire rejoindre le bot dans un channel
+  if (commandName === 'join'){
+
+    //! LE BOT CRASH SI LA COMMANDE EST EFFECTUE SANS LA PERSONNE DANS LE CHANNEL
+    const connection = joinVoiceChannel({
+      channelId: interaction.member.voice.channel.id,
+      guildId: interaction.member.voice.channel.guildId,
+      adapterCreator: interaction.member.voice.channel.guild.voiceAdapterCreator,
+    });
+    await interaction.reply('et bijour!');
+  } 
+
+  //* déconnection du bot
+  if (commandName === 'disconnect'){
+
+    //! LE BOT CRASH SI LA COMMANDE EST EFFECTUE SANS LA PERSONNE DANS LE CHANNEL
+    const connection = getVoiceConnection(interaction.guildId,);
+    connection.destroy();
+    await interaction.reply('So long gay ' + interaction.member.user.username + '!');
   }
 });
 

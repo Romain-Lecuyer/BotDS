@@ -5,7 +5,23 @@ const { REST } = require('@discordjs/rest');
 const commands = [
   new SlashCommandBuilder().setName('ping').setDescription('Il va te répondre avec pong'),
   new SlashCommandBuilder().setName('button').setDescription('Faire apparaitre un bouton'),
-  new SlashCommandBuilder().setName('strawpoll').setDescription('créer un strawpoll')
+  new SlashCommandBuilder().setName('join').setDescription('Faire rejoindre le bot dans un channel'),
+  new SlashCommandBuilder().setName('disconnect').setDescription('Tuer le bot'),
+
+  new SlashCommandBuilder().setName('roll').setDescription('ROLL MY DICE')
+  .addIntegerOption(option => option
+    .setName('nbdé')
+    .setDescription('Nombre de dé')
+    .setRequired(true)
+  )
+  .addIntegerOption(option => option
+    .setName('nbmax')
+    .setDescription('chiffre maximum du dé')
+    .setRequired(true)
+  ),
+
+  /** ! Obsolète car fonctionnalité rajouté de base sur ds
+  /new SlashCommandBuilder().setName('strawpoll').setDescription('créer un strawpoll')
   .addStringOption(option => option
     .setName('title')
     .setDescription('Titre du poll')
@@ -38,19 +54,8 @@ const commands = [
     .setName('option5')
     .setDescription('Option 5')
     .setMaxLength(10)
-  ),
+  ),*/
 
-  new SlashCommandBuilder().setName('roll').setDescription('ROLL MY DICE')
-  .addIntegerOption(option => option
-    .setName('nbdé')
-    .setDescription('Nombre de dé')
-    .setRequired(true)
-  )
-  .addIntegerOption(option => option
-    .setName('nbmax')
-    .setDescription('chiffre maximum du dé')
-    .setRequired(true)
-  ),
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
