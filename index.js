@@ -59,20 +59,23 @@ client.on('interactionCreate', async interaction => {
 
   //* faire rejoindre le bot dans un channel
   if (commandName === 'join'){
-
-    //! LE BOT CRASH SI LA COMMANDE EST EFFECTUE SANS LA PERSONNE DANS LE CHANNEL
+    if (interaction.member.voice.channel == null) {
+      await interaction.reply('Aucun channel vocal trouvé');
+      return;
+    }
+    else{
     const connection = joinVoiceChannel({
       channelId: interaction.member.voice.channel.id,
       guildId: interaction.member.voice.channel.guildId,
       adapterCreator: interaction.member.voice.channel.guild.voiceAdapterCreator,
     });
     await interaction.reply('et bijour!');
+    }
+
   } 
 
   //* déconnection du bot
   if (commandName === 'disconnect'){
-
-    //! LE BOT CRASH SI LA COMMANDE EST EFFECTUE SANS LA PERSONNE DANS LE CHANNEL
     const connection = getVoiceConnection(interaction.guildId,);
     connection.destroy();
     await interaction.reply('So long gay ' + interaction.member.user.username + '!');
