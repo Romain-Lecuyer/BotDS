@@ -5,7 +5,7 @@ const { REST } = require('@discordjs/rest');
 const commands = [
   new SlashCommandBuilder().setName('ping').setDescription('Il va te répondre avec pong'),
   new SlashCommandBuilder().setName('button').setDescription('Faire apparaitre un bouton'),
-  new SlashCommandBuilder().setName('join').setDescription('Faire rejoindre le bot dans un channel'),
+  new SlashCommandBuilder().setName('play').setDescription('Mettez la sique'),
   new SlashCommandBuilder().setName('disconnect').setDescription('Tuer le bot'),
 
   new SlashCommandBuilder().setName('roll').setDescription('ROLL MY DICE')

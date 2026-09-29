@@ -1,10 +1,23 @@
 require('dotenv').config();
+require('dns').setDefaultResultOrder('ipv4first');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GatewayIntentBits  } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
-const { getVoiceConnection, joinVoiceChannel } = require('@discordjs/voice');
+const { getVoiceConnection, joinVoiceChannel, createAudioPlayer, createAudioResource, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
+const ytdl = require('@distube/ytdl-core');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+const execFileAsync = promisify(execFile);
+
+const audioPlayer = createAudioPlayer();
+async function getAudioStreamUrl(youtubeUrl) {
+  const { stdout } = await execFileAsync('yt-dlp', ['-f', 'bestaudio', '-g', youtubeUrl]);
+  return stdout.trim();
+}
+
 
 client.on('clientReady', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
+  console.log(typeof ytdl === 'function');
 });
 
 client.on('interactionCreate', async interaction => {
@@ -35,7 +48,7 @@ client.on('interactionCreate', async interaction => {
   //* 1er test roll
   if (commandName === 'roll'){
 
-    //! On ne peut sélectionner que 1 seul type de dé à changer 
+    // TODO: On ne peut sélectionner que 1 seul type de dé à changer 
     const options = await interaction.options.data;
     const nbDice = options[0].value;
     const nbMax = options[1].value;
@@ -58,20 +71,33 @@ client.on('interactionCreate', async interaction => {
   }
 
   //* faire rejoindre le bot dans un channel
-  if (commandName === 'join'){
+  if (commandName === 'play'){
     if (interaction.member.voice.channel == null) {
       await interaction.reply('Aucun channel vocal trouvé');
       return;
     }
-    else{
+
+    //* Connection au vocal au la personne est présente
     const connection = joinVoiceChannel({
       channelId: interaction.member.voice.channel.id,
       guildId: interaction.member.voice.channel.guildId,
       adapterCreator: interaction.member.voice.channel.guild.voiceAdapterCreator,
     });
-    await interaction.reply('et bijour!');
+    await interaction.reply('OKAAAAY LETZ GO');
+    connection.subscribe(audioPlayer);
+    try {
+      const [, url] = await Promise.all([
+        entersState(connection, VoiceConnectionStatus.Ready, 5_000),
+        getAudioStreamUrl('https://www.youtube.com/watch?v=1iyj7qMJ7Pc'),
+      ]);
+      const musique = createAudioResource(url);
+      audioPlayer.on('stateChange', (oldState, newState) => {
+        console.log(`Player: ${oldState.status} -> ${newState.status}`); //* Etat du bot (idle, buffering, playing, paused)
+      });
+      audioPlayer.play(musique);
+    } catch (err){
+      console.error('Erreur yt-dlp:', err);
     }
-
   } 
 
   //* déconnection du bot
