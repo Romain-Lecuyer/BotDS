@@ -77,6 +77,9 @@ client.on('interactionCreate', async interaction => {
       return;
     }
 
+    const options = await interaction.options.data;
+    const lien = options[0].value;
+
     //* Connection au vocal au la personne est présente
     const connection = joinVoiceChannel({
       channelId: interaction.member.voice.channel.id,
@@ -88,7 +91,7 @@ client.on('interactionCreate', async interaction => {
     try {
       const [, url] = await Promise.all([
         entersState(connection, VoiceConnectionStatus.Ready, 5_000),
-        getAudioStreamUrl('https://www.youtube.com/watch?v=1iyj7qMJ7Pc'),
+        getAudioStreamUrl(lien),
       ]);
       const musique = createAudioResource(url);
       audioPlayer.on('stateChange', (oldState, newState) => {

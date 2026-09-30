@@ -5,8 +5,14 @@ const { REST } = require('@discordjs/rest');
 const commands = [
   new SlashCommandBuilder().setName('ping').setDescription('Il va te répondre avec pong'),
   new SlashCommandBuilder().setName('button').setDescription('Faire apparaitre un bouton'),
-  new SlashCommandBuilder().setName('play').setDescription('Mettez la sique'),
   new SlashCommandBuilder().setName('disconnect').setDescription('Tuer le bot'),
+
+    new SlashCommandBuilder().setName('play').setDescription('Mettez la sique')
+    .addStringOption(option => option
+      .setName('url')
+      .setDescription('URL youtube')
+      .setRequired(true)
+    ),
 
   new SlashCommandBuilder().setName('roll').setDescription('ROLL MY DICE')
   .addIntegerOption(option => option
