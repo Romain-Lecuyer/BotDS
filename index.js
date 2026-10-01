@@ -9,6 +9,7 @@ const { promisify } = require('util');
 const execFileAsync = promisify(execFile);
 
 const audioPlayer = createAudioPlayer();
+const list = [];
 async function getAudioStreamUrl(youtubeUrl) {
   const { stdout } = await execFileAsync('yt-dlp', ['-f', 'bestaudio', '-g', youtubeUrl]);
   return stdout.trim();
@@ -17,7 +18,7 @@ async function getAudioStreamUrl(youtubeUrl) {
 
 client.on('clientReady', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
-  console.log(typeof ytdl === 'function');
+  //console.log(typeof ytdl === 'function');
 });
 
 client.on('interactionCreate', async interaction => {
@@ -92,6 +93,7 @@ client.on('interactionCreate', async interaction => {
       return;
     }
     else if (!connection) {
+      //* Connection au vocal où la personne est présente
       connection = joinVoiceChannel({
         channelId: interaction.member.voice.channel.id,
         guildId: interaction.member.voice.channel.guildId,
@@ -101,14 +103,24 @@ client.on('interactionCreate', async interaction => {
 
     const options = await interaction.options.data;
     const lien = options[0].value;
+    const nbMusiques = list.length;
 
-    //* Connection au vocal au la personne est présente
-    await interaction.reply('OKAAAAY LETZ GO');
+    list.push(lien);
+    //* Verif si une musique est déjà lancée
+    if(nbMusiques > 0){
+      await interaction.reply('Musique ajoutée à la playlist');
+      return; //* on arrete le programme
+    } 
+    else{
+      await interaction.reply('OKAAAAY LETZ GO');
+    }
+
+    //! Ne transitionne pas sur la 2e musique, à corriger
     connection.subscribe(audioPlayer);
     try {
       const [, url] = await Promise.all([
         entersState(connection, VoiceConnectionStatus.Ready, 5_000),
-        getAudioStreamUrl(lien),
+        getAudioStreamUrl(list[0]),
       ]);
       const musique = createAudioResource(url);
       audioPlayer.on('stateChange', (oldState, newState) => {
@@ -119,6 +131,11 @@ client.on('interactionCreate', async interaction => {
       console.error('Erreur yt-dlp:', err);
     }
   } 
+
+  //* afficher la playlist
+  if (commandName === 'list'){
+    await interaction.reply('Liste des musiques :\n' + list.join('\n'));
+  }
 
   //* mettre en pause la playlist
   if (commandName === 'pause'){
