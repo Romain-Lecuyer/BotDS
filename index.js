@@ -70,22 +70,39 @@ client.on('interactionCreate', async interaction => {
     await interaction.reply({ embeds: [embed] });
   }
 
-  //* faire rejoindre le bot dans un channel
+  if (commandName === 'join'){
+    const connection = joinVoiceChannel({
+      channelId: interaction.member.voice.channel.id,
+      guildId: interaction.member.voice.channel.guildId,
+      adapterCreator: interaction.member.voice.channel.guild.voiceAdapterCreator,
+    });
+    await interaction.reply('c good');
+  }
+  if (commandName === 'checkco'){
+    console.log(getVoiceConnection(interaction.guildId)?.state.status);
+    console.log(interaction.member.voice.channel.members.map(m => m.user.username));
+    await interaction.reply('c good');
+  }
+  //* lancer une musique
   if (commandName === 'play'){
+    let connection = getVoiceConnection(interaction.guildId);
+
     if (interaction.member.voice.channel == null) {
       await interaction.reply('Aucun channel vocal trouvé');
       return;
+    }
+    else if (!connection) {
+      connection = joinVoiceChannel({
+        channelId: interaction.member.voice.channel.id,
+        guildId: interaction.member.voice.channel.guildId,
+        adapterCreator: interaction.member.voice.channel.guild.voiceAdapterCreator,
+      });
     }
 
     const options = await interaction.options.data;
     const lien = options[0].value;
 
     //* Connection au vocal au la personne est présente
-    const connection = joinVoiceChannel({
-      channelId: interaction.member.voice.channel.id,
-      guildId: interaction.member.voice.channel.guildId,
-      adapterCreator: interaction.member.voice.channel.guild.voiceAdapterCreator,
-    });
     await interaction.reply('OKAAAAY LETZ GO');
     connection.subscribe(audioPlayer);
     try {
@@ -102,6 +119,17 @@ client.on('interactionCreate', async interaction => {
       console.error('Erreur yt-dlp:', err);
     }
   } 
+
+  //* mettre en pause la playlist
+  if (commandName === 'pause'){
+    audioPlayer.pause();
+    await interaction.reply('c good');
+  }
+  //* remettre la playlist
+  if (commandName === 'resume'){
+    audioPlayer.unpause();
+    await interaction.reply('c good');
+  }
 
   //* déconnection du bot
   if (commandName === 'disconnect'){

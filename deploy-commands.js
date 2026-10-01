@@ -5,9 +5,13 @@ const { REST } = require('@discordjs/rest');
 const commands = [
   new SlashCommandBuilder().setName('ping').setDescription('Il va te répondre avec pong'),
   new SlashCommandBuilder().setName('button').setDescription('Faire apparaitre un bouton'),
+  new SlashCommandBuilder().setName('join').setDescription('Rejoindre le vocal'),
+  new SlashCommandBuilder().setName('checkco').setDescription('Vérifier la connexion au vocal'),
   new SlashCommandBuilder().setName('disconnect').setDescription('Tuer le bot'),
-
-    new SlashCommandBuilder().setName('play').setDescription('Mettez la sique')
+  new SlashCommandBuilder().setName('pause').setDescription('Mettre en pause la playlist'),
+  new SlashCommandBuilder().setName('resume').setDescription('Reprendre la playlist'),
+  
+  new SlashCommandBuilder().setName('play').setDescription('Jouer une musique')
     .addStringOption(option => option
       .setName('url')
       .setDescription('URL youtube')
