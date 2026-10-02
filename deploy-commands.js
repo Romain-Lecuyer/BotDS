@@ -11,6 +11,7 @@ const commands = [
   new SlashCommandBuilder().setName('pause').setDescription('Mettre en pause la playlist'),
   new SlashCommandBuilder().setName('resume').setDescription('Reprendre la playlist'),
   new SlashCommandBuilder().setName('list').setDescription('Afficher la playlist'),
+  new SlashCommandBuilder().setName('skip').setDescription('NEXT'),
 
   new SlashCommandBuilder().setName('play').setDescription('Jouer une musique')
     .addStringOption(option => option
