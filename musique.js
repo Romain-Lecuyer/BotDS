@@ -4,16 +4,10 @@ const { promisify } = require('util');
 const execFileAsync = promisify(execFile);
 
 const audioPlayer = createAudioPlayer();
-audioPlayer.on('stateChange', (oldState, newState) => {
-    console.log(`Player: ${oldState.status} -> ${newState.status}`); //* Etat du bot (idle, buffering, playing, paused)
-
-    //* une musique est terminée
-    if (oldState.status === 'playing' && newState.status === 'idle' ) {
-      list.shift();
-      lancerMusique();
-    }
-});
 const list = [];
+let salon = null;
+let idleTimer = null;
+let currentGuildId = null;
 
 async function getAudioStreamUrl(youtubeUrl) {
   const { stdout } = await execFileAsync('yt-dlp', ['-f', 'bestaudio', '-g', youtubeUrl]);
@@ -23,9 +17,11 @@ async function getAudioStreamUrl(youtubeUrl) {
 //* rajouter une musique à la playlist
 async function play(interaction) {
   let connection = getVoiceConnection(interaction.guildId);
+  salon = interaction.channel;
+  currentGuildId = interaction.guildId;
 
   if (interaction.member.voice.channel == null) {
-    await interaction.reply('Aucun channel vocal trouvé');
+    await interaction.reply("Aucun channel vocal trouvé");
     return;
   }
   else if (!connection) {
@@ -45,20 +41,63 @@ async function play(interaction) {
 
   //* Verif si une musique est déjà lancée
   if (nbMusiques > 0) {
-    await interaction.reply('Va falloir attendre un peu mon brave, il y a déjà ' + nbMusiques + ' musiques avant');
+    await interaction.reply("Va falloir attendre un peu mon brave, il y a déjà " + nbMusiques + " vidéo avant");
     return; //* on arrete le programme
   }
   else {
-    await interaction.reply('OKAAAAY LETZ GO');
+    await interaction.reply("OKAAAAY LETZ GO");
   }
   connection.subscribe(audioPlayer);
   await entersState(connection, VoiceConnectionStatus.Ready, 5_000);
   await lancerMusique();
 }
 
+//* afficher la playlist
+async function list_(interaction) {
+  await interaction.reply("Liste des musiques :\n" + list.join('\n'));
+}
+
+//* mettre en pause la playlist
+async function pause(interaction) {
+  audioPlayer.pause();
+  await interaction.reply("c good");
+}
+
+//* remettre la playlist
+async function resume(interaction) {
+  audioPlayer.unpause();
+  await interaction.reply("c good");
+}
+
+//* prochaine musique
+async function skip(interaction) {
+  list.shift();
+  console.log("list après shift : " + list);
+  if(list.length === 0) {
+    audioPlayer.stop();
+    await interaction.reply("et voila c'est fini");
+    return
+  }
+  await interaction.reply("nul ! NEXT");
+  await lancerMusique();
+}
+
+//* déconnection du bot
+async function disconnect(interaction = null) {
+    const connection = getVoiceConnection(currentGuildId);
+    if(connection) {
+        connection.destroy();
+    }
+    if(interaction) {
+        await interaction.reply("So long gay " + interaction.member.user.username + "!");
+    }
+    else {
+      await envoyerMessage("On veut plus de moi ? Bon...");
+    }
+}
+
 //* lancer une musique
 async function lancerMusique() {
-  console.log("bienvenue dans la fonction")
   if (list.length === 0) {
     console.log('ya plus rien la');
     return;
@@ -66,48 +105,43 @@ async function lancerMusique() {
   try {
     const url = await getAudioStreamUrl(list[0]);
     const musique = createAudioResource(url);
-    console.log("preparez vous au lancement")
     audioPlayer.play(musique);
-    console.log("eh bah voilaaaaaaaa")
+    await envoyerMessage("eeeeeet on est parti pour : " + list[0]);
   } catch (err) {
     console.error('Erreur yt-dlp:', err);
   }
 }
 
-//* afficher la playlist
-async function list_(interaction) {
-  await interaction.reply('Liste des musiques :\n' + list.join('\n'));
-}
-
-//* mettre en pause la playlist
-async function pause(interaction) {
-  audioPlayer.pause();
-  await interaction.reply('c good');
-}
-
-//* remettre la playlist
-async function resume(interaction) {
-  audioPlayer.unpause();
-  await interaction.reply('c good');
-}
-
-//* prochaine musique
-async function skip(interaction) {
-  list.shift();
-  console.log('list après shift : ' + list);
-  await interaction.reply('c good');
-  if(list.length === 0) {
-    audioPlayer.stop();
-    return
+//* Envoyer un message dans le channel ou le bot a été appelé
+async function envoyerMessage(texte) {
+  if (salon) {
+    await salon.send(texte);
   }
-  await lancerMusique();
 }
 
-//* déconnection du bot
-async function disconnect(interaction) {
-    const connection = getVoiceConnection(interaction.guildId,);
-    connection.destroy();
-    await interaction.reply('So long gay ' + interaction.member.user.username + '!');
-}
+//* gestion du changement d'état du bot
+audioPlayer.on('stateChange', (oldState, newState) => {
+  console.log(`Player: ${oldState.status} -> ${newState.status}`); //* affiche l'ancien et le nouvel état du bot (idle, buffering, playing, paused)
+  
+  //* une musique est terminée
+  if (oldState.status === 'playing' && newState.status === 'idle' ) {
+    list.shift();
+    lancerMusique();
+  }
+
+  if (newState.status === 'idle' && list.length === 0) {  // ajout de cette condition
+    idleTimer = setTimeout(() => { disconnect(); }, 60000);
+  }
+  else {
+    //* annule le minuteur
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+      console.log("minuteur arreté");
+    }
+  }
+});
+
+
 
 module.exports = { play, list: list_, pause, resume, skip, disconnect, audioPlayer };

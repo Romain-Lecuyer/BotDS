@@ -2,18 +2,6 @@ require('dotenv').config();
 require('dns').setDefaultResultOrder('ipv4first');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GatewayIntentBits  } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
-/*const { getVoiceConnection, joinVoiceChannel, createAudioPlayer, createAudioResource, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
-const ytdl = require('@distube/ytdl-core');
-const { execFile } = require('child_process');
-const { promisify } = require('util');
-const execFileAsync = promisify(execFile);
-
-const audioPlayer = createAudioPlayer();
-const list = [];
-async function getAudioStreamUrl(youtubeUrl) {
-  const { stdout } = await execFileAsync('yt-dlp', ['-f', 'bestaudio', '-g', youtubeUrl]);
-  return stdout.trim();
-}*/
 const musique = require('./musique.js');
 
 client.on('clientReady', () => {
@@ -69,6 +57,10 @@ client.on('interactionCreate', async interaction => {
     
     // * Envoyer l'embed dans le channel
     await interaction.reply({ embeds: [embed] });
+  }
+
+  //* fourre-tout d'essai
+  if (commandName === 'test') {
   }
 
 
