@@ -6,7 +6,7 @@ const musique = require('./musique.js');
 
 client.on('clientReady', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
-  //console.log(typeof ytdl === 'function');
+  console.log(typeof ytdl === 'function');
 });
 
 client.on('interactionCreate', async interaction => {
