@@ -1,16 +1,25 @@
 require('dotenv').config();
-const { SlashCommandBuilder, Routes } = require('discord.js');
+const { SlashCommandBuilder, Routes, PermissionFlagsBits } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 
 const commands = [
   new SlashCommandBuilder().setName('ping').setDescription('Il va te répondre avec pong'),
   new SlashCommandBuilder().setName('button').setDescription('Faire apparaitre un bouton'),
   new SlashCommandBuilder().setName('join').setDescription('Rejoindre le vocal'),
-  new SlashCommandBuilder().setName('checkco').setDescription('Vérifier la connexion au vocal'),
   new SlashCommandBuilder().setName('disconnect').setDescription('Tuer le bot'),
   new SlashCommandBuilder().setName('pause').setDescription('Mettre en pause la playlist'),
   new SlashCommandBuilder().setName('resume').setDescription('Reprendre la playlist'),
-  
+  new SlashCommandBuilder().setName('list').setDescription('Afficher la playlist'),
+  new SlashCommandBuilder().setName('skip').setDescription('NEXT'),
+
+  new SlashCommandBuilder().setName('test').setDescription('mes essaie commande divers et variés')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addStringOption(option => option
+      .setName('test')
+      .setDescription('variable en fonction de mes besoins')
+      .setRequired(true)
+    ),
+
   new SlashCommandBuilder().setName('play').setDescription('Jouer une musique')
     .addStringOption(option => option
       .setName('url')

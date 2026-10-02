@@ -2,18 +2,7 @@ require('dotenv').config();
 require('dns').setDefaultResultOrder('ipv4first');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, GatewayIntentBits  } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
-const { getVoiceConnection, joinVoiceChannel, createAudioPlayer, createAudioResource, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
-const ytdl = require('@distube/ytdl-core');
-const { execFile } = require('child_process');
-const { promisify } = require('util');
-const execFileAsync = promisify(execFile);
-
-const audioPlayer = createAudioPlayer();
-async function getAudioStreamUrl(youtubeUrl) {
-  const { stdout } = await execFileAsync('yt-dlp', ['-f', 'bestaudio', '-g', youtubeUrl]);
-  return stdout.trim();
-}
-
+const musique = require('./musique.js');
 
 client.on('clientReady', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
@@ -70,72 +59,34 @@ client.on('interactionCreate', async interaction => {
     await interaction.reply({ embeds: [embed] });
   }
 
-  if (commandName === 'join'){
-    const connection = joinVoiceChannel({
-      channelId: interaction.member.voice.channel.id,
-      guildId: interaction.member.voice.channel.guildId,
-      adapterCreator: interaction.member.voice.channel.guild.voiceAdapterCreator,
-    });
-    await interaction.reply('c good');
-  }
-  if (commandName === 'checkco'){
-    console.log(getVoiceConnection(interaction.guildId)?.state.status);
-    console.log(interaction.member.voice.channel.members.map(m => m.user.username));
-    await interaction.reply('c good');
-  }
-  //* lancer une musique
-  if (commandName === 'play'){
-    let connection = getVoiceConnection(interaction.guildId);
-
-    if (interaction.member.voice.channel == null) {
-      await interaction.reply('Aucun channel vocal trouvé');
-      return;
-    }
-    else if (!connection) {
-      connection = joinVoiceChannel({
-        channelId: interaction.member.voice.channel.id,
-        guildId: interaction.member.voice.channel.guildId,
-        adapterCreator: interaction.member.voice.channel.guild.voiceAdapterCreator,
-      });
-    }
-
-    const options = await interaction.options.data;
-    const lien = options[0].value;
-
-    //* Connection au vocal au la personne est présente
-    await interaction.reply('OKAAAAY LETZ GO');
-    connection.subscribe(audioPlayer);
-    try {
-      const [, url] = await Promise.all([
-        entersState(connection, VoiceConnectionStatus.Ready, 5_000),
-        getAudioStreamUrl(lien),
-      ]);
-      const musique = createAudioResource(url);
-      audioPlayer.on('stateChange', (oldState, newState) => {
-        console.log(`Player: ${oldState.status} -> ${newState.status}`); //* Etat du bot (idle, buffering, playing, paused)
-      });
-      audioPlayer.play(musique);
-    } catch (err){
-      console.error('Erreur yt-dlp:', err);
-    }
-  } 
-
-  //* mettre en pause la playlist
-  if (commandName === 'pause'){
-    audioPlayer.pause();
-    await interaction.reply('c good');
-  }
-  //* remettre la playlist
-  if (commandName === 'resume'){
-    audioPlayer.unpause();
-    await interaction.reply('c good');
+  //* fourre-tout d'essai
+  if (commandName === 'test') {
   }
 
-  //* déconnection du bot
-  if (commandName === 'disconnect'){
-    const connection = getVoiceConnection(interaction.guildId,);
-    connection.destroy();
-    await interaction.reply('So long gay ' + interaction.member.user.username + '!');
+
+  //* Liste des commandes musique.js
+  if (commandName === 'play') {
+    await musique.play(interaction);
+  }
+
+  if (commandName === 'list') {
+    await musique.list(interaction);
+  }
+
+  if (commandName === 'pause') {
+    await musique.pause(interaction);
+  }
+
+  if (commandName === 'resume') {
+    await musique.resume(interaction);
+  }
+
+  if (commandName === 'skip') {
+    await musique.skip(interaction);
+  }
+
+  if (commandName === 'disconnect') {
+    await musique.disconnect(interaction);
   }
 });
 
