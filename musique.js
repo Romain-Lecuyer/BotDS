@@ -4,6 +4,15 @@ const { promisify } = require('util');
 const execFileAsync = promisify(execFile);
 
 const audioPlayer = createAudioPlayer();
+audioPlayer.on('stateChange', (oldState, newState) => {
+    console.log(`Player: ${oldState.status} -> ${newState.status}`); //* Etat du bot (idle, buffering, playing, paused)
+
+    //* une musique est terminée
+    if (oldState.status === 'playing' && newState.status === 'idle' ) {
+      list.shift();
+      lancerMusique();
+    }
+});
 const list = [];
 
 async function getAudioStreamUrl(youtubeUrl) {
@@ -11,7 +20,7 @@ async function getAudioStreamUrl(youtubeUrl) {
   return stdout.trim();
 }
 
-//* lancer une musique
+//* rajouter une musique à la playlist
 async function play(interaction) {
   let connection = getVoiceConnection(interaction.guildId);
 
@@ -42,19 +51,24 @@ async function play(interaction) {
   else {
     await interaction.reply('OKAAAAY LETZ GO');
   }
-
-  //! Ne transitionne pas sur la 2e musique, à corriger
   connection.subscribe(audioPlayer);
+  await entersState(connection, VoiceConnectionStatus.Ready, 5_000);
+  await lancerMusique();
+}
+
+//* lancer une musique
+async function lancerMusique() {
+  console.log("bienvenue dans la fonction")
+  if (list.length === 0) {
+    console.log('ya plus rien la');
+    return;
+  }
   try {
-    const [, url] = await Promise.all([
-      entersState(connection, VoiceConnectionStatus.Ready, 5_000),
-      getAudioStreamUrl(list[0]),
-    ]);
+    const url = await getAudioStreamUrl(list[0]);
     const musique = createAudioResource(url);
-    audioPlayer.on('stateChange', (oldState, newState) => {
-      console.log(`Player: ${oldState.status} -> ${newState.status}`); //* Etat du bot (idle, buffering, playing, paused)
-    });
+    console.log("preparez vous au lancement")
     audioPlayer.play(musique);
+    console.log("eh bah voilaaaaaaaa")
   } catch (err) {
     console.error('Erreur yt-dlp:', err);
   }
@@ -80,7 +94,13 @@ async function resume(interaction) {
 //* prochaine musique
 async function skip(interaction) {
   list.shift();
+  console.log('list après shift : ' + list);
   await interaction.reply('c good');
+  if(list.length === 0) {
+    audioPlayer.stop();
+    return
+  }
+  await lancerMusique();
 }
 
 //* déconnection du bot
